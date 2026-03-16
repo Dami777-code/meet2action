@@ -33,6 +33,17 @@ _NON_ACTION_PREFIXES = (
     "note:",
     "attendees:",
 )
+_NON_ACTION_LABELS = {
+    "topic",
+    "fyi",
+    "background",
+    "context",
+    "status",
+    "note",
+    "notes",
+    "discussion",
+    "attendees",
+}
 _OWNER_PATTERNS = [
     re.compile(r"^([A-Z][a-z]+)\s+to\s+(.+)$"),
     re.compile(r"^([A-Z][a-z]+)\s+will\s+(.+)$"),
@@ -84,6 +95,9 @@ def _is_candidate_action(line: str) -> bool:
     if lowered.startswith(_NON_ACTION_PREFIXES):
         return False
 
+    if _is_non_action_colon_label(line):
+        return False
+
     if lowered.startswith("we will ") and not any(
         token in lowered
         for token in (
@@ -98,6 +112,25 @@ def _is_candidate_action(line: str) -> bool:
         return False
 
     return any(hint in lowered for hint in _ACTION_HINTS)
+
+
+def _is_non_action_colon_label(line: str) -> bool:
+    label_match = re.match(r"^([^:]{1,40}):\s*(.+)$", line)
+    if not label_match:
+        return False
+
+    label = label_match.group(1).strip()
+    remainder = label_match.group(2).strip()
+    if not label or not remainder:
+        return True
+
+    if label.lower() in _NON_ACTION_LABELS:
+        return True
+
+    if re.match(r"^[A-Z][a-z]+$", label):
+        return False
+
+    return not _looks_like_action_task(remainder)
 
 
 def _extract_action_item(line: str) -> ActionItem | None:

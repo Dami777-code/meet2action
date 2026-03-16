@@ -76,3 +76,27 @@ Risks were reviewed.
 
     assert result.candidate_lines == 0
     assert result.actions == []
+
+
+def test_parse_actions_skips_generic_colon_labels() -> None:
+    text = """
+Topic: pricing
+FYI: vendor replied
+Background: Q2 plan
+"""
+    result = parse_actions(text)
+
+    assert result.candidate_lines == 0
+    assert result.actions == []
+
+
+def test_parse_actions_keeps_obvious_owner_colon_actions() -> None:
+    text = """
+Alice: send updated report by Monday.
+"""
+    result = parse_actions(text)
+
+    assert len(result.actions) == 1
+    assert result.actions[0].owner == "Alice"
+    assert result.actions[0].task == "Send updated report"
+    assert result.actions[0].due_date == "Monday"
