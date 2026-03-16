@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from datetime import date
 
 from .models import ActionItem, ParseResult
 
@@ -170,10 +171,20 @@ def _extract_due_date(line: str) -> tuple[str | None, str]:
         match = pattern.search(line)
         if match:
             due_date = match.group(2)
+            if pattern is _DUE_PATTERNS[0] and not _is_valid_iso_date(due_date):
+                continue
             start, end = match.span()
             remainder = f"{line[:start]} {line[end:]}".strip()
             return due_date, remainder
     return None, line
+
+
+def _is_valid_iso_date(value: str) -> bool:
+    try:
+        date.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
 
 
 def _normalize_task_text(task: str) -> str:

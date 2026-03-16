@@ -57,13 +57,29 @@ Status: project is on track.
 def test_parse_actions_due_date_guardrails_keep_invalid_dates_out() -> None:
     text = """
 Alice to finalize report by 2026-3-7.
+Alice to finalize report by 2026-02-30.
 Alice to finalize report by 2026-03-07.
 """
     result = parse_actions(text)
 
-    assert len(result.actions) == 2
+    assert len(result.actions) == 3
     assert result.actions[0].due_date is None
-    assert result.actions[1].due_date == "2026-03-07"
+    assert result.actions[1].due_date is None
+    assert result.actions[2].due_date == "2026-03-07"
+
+
+
+
+def test_parse_actions_due_date_guardrails_accept_real_leap_day_only() -> None:
+    text = """
+Alice to submit compliance report by 2024-02-29.
+Alice to submit compliance report by 2025-02-29.
+"""
+    result = parse_actions(text)
+
+    assert len(result.actions) == 2
+    assert result.actions[0].due_date == "2024-02-29"
+    assert result.actions[1].due_date is None
 
 
 def test_parse_actions_is_conservative_for_non_action_lines() -> None:

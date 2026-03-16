@@ -74,7 +74,7 @@ The parser uses deterministic, conservative rules:
   - `Alice: ...`
   - `@Alice ...`
 - Due date is extracted only for obvious formats:
-  - `by YYYY-MM-DD` or `due YYYY-MM-DD`
+  - `by YYYY-MM-DD` or `due YYYY-MM-DD` (must be a real calendar date)
   - `by Monday` or `due Friday` (weekday names)
 - Discussion/status context lines (for example `Discussion:` or `We will discuss ...`) are intentionally ignored to reduce false positives.
 - Generic context labels like `Topic:`, `FYI:`, and `Background:` are ignored unless they clearly match an obvious action-owner pattern.
