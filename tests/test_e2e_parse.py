@@ -21,5 +21,5 @@ def test_parse_command_end_to_end_with_fixture(tmp_path: Path) -> None:
 
     content = out_file.read_text(encoding="utf-8")
     assert "- [ ] Draft kickoff agenda (owner: Alice, due: 2026-03-20)" in content
-    assert "- [ ] Please send vendor shortlist (due: Friday)" in content
+    assert "- [ ] Send vendor shortlist (due: Friday)" in content
     assert "- [ ] Follow up with legal (owner: Bob)" in content

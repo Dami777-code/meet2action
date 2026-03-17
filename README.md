@@ -58,9 +58,27 @@ General discussion about roadmap.
 # Action Items
 
 - [ ] Draft kickoff agenda (owner: Alice, due: 2026-03-20)
-- [ ] Please send vendor shortlist (due: Friday)
+- [ ] Send vendor shortlist (due: Friday)
 - [ ] Follow up with legal (owner: Bob)
 ```
+
+
+## Extraction rules (V1)
+
+The parser uses deterministic, conservative rules:
+
+- Action candidates are lines with clear action cues (for example: `to`, `will`, `send`, `review`, `prepare`, `follow up`).
+- Owner is extracted only for obvious formats:
+  - `Alice to ...`
+  - `Alice will ...`
+  - `Alice: ...`
+  - `@Alice ...`
+- Due date is extracted only for obvious formats:
+  - `by YYYY-MM-DD` or `due YYYY-MM-DD` (must be a real calendar date)
+  - `by Monday` or `due Friday` (weekday names)
+- Discussion/status context lines (for example `Discussion:` or `We will discuss ...`) are intentionally ignored to reduce false positives.
+- Generic context labels like `Topic:`, `FYI:`, and `Background:` are ignored unless they clearly match an obvious action-owner pattern.
+- Leading `Please` is removed from task text when present as politeness.
 
 ## Project Layout
 
