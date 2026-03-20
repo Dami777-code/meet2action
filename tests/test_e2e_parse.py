@@ -1,3 +1,4 @@
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -6,13 +7,15 @@ from pathlib import Path
 def test_parse_command_end_to_end_with_fixture(tmp_path: Path) -> None:
     fixture = Path("tests/fixtures/notes_sample.txt")
     out_file = tmp_path / "actions.md"
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
 
     result = subprocess.run(
         [sys.executable, "-m", "meet2action.cli", "parse", str(fixture), "--out", str(out_file)],
         capture_output=True,
         text=True,
         check=False,
-        env={"PYTHONPATH": "src"},
+        env=env,
     )
 
     assert result.returncode == 0

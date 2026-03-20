@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "CLI tool to convert meeting notes into actionable markdown checklists"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = ["typer>=0.12,<1.0"]
 
 [project.scripts]
 meet2action = "meet2action.cli:main"
