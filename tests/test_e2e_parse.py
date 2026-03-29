@@ -26,3 +26,61 @@ def test_parse_command_end_to_end_with_fixture(tmp_path: Path) -> None:
     assert "- [ ] Draft kickoff agenda (owner: Alice, due: 2026-03-20)" in content
     assert "- [ ] Send vendor shortlist (due: Friday)" in content
     assert "- [ ] Follow up with legal (owner: Bob)" in content
+
+
+def test_console_script_callable_dispatches_parse_command(tmp_path: Path) -> None:
+    fixture = Path("tests/fixtures/notes_sample.txt")
+    out_file = tmp_path / "actions.md"
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            (
+                "from meet2action.cli import cli; "
+                "import sys; "
+                "sys.argv = ['meet2action', 'parse', 'tests/fixtures/notes_sample.txt', '--out', "
+                f"r'{out_file}']; "
+                "cli()"
+            ),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+    )
+
+    assert result.returncode == 0
+    assert "extracted 3 actions" in result.stdout
+    assert out_file.exists()
+
+
+def test_console_script_callable_returns_error_for_missing_input(tmp_path: Path) -> None:
+    missing = tmp_path / "missing.txt"
+    out_file = tmp_path / "actions.md"
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            (
+                "from meet2action.cli import cli; "
+                "import sys; "
+                "sys.argv = ['meet2action', 'parse', "
+                f"r'{missing}', '--out', r'{out_file}']; "
+                "cli()"
+            ),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+    )
+
+    assert result.returncode == 1
+    assert f"Error: input file does not exist: {missing}" in result.stdout
+    assert not out_file.exists()

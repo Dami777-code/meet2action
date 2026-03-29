@@ -18,6 +18,10 @@ def main() -> None:
     """Meeting-to-Action CLI."""
 
 
+def cli() -> None:
+    app()
+
+
 def run_parse(input_file: Path, out: Path) -> None:
     if not input_file.exists():
         typer.echo(f"Error: input file does not exist: {input_file}")
@@ -55,4 +59,4 @@ def parse(
 
 
 if __name__ == "__main__":
-    app()
+    cli()
