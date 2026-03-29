@@ -4,18 +4,42 @@ import sys
 from pathlib import Path
 
 
+def _run_cli_command(args: list[str], env: dict[str, str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        args,
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+    )
+
+
+def _run_console_script(args: list[str], env: dict[str, str]) -> subprocess.CompletedProcess[str]:
+    argv = repr(["meet2action", *args])
+    return _run_cli_command(
+        [
+            sys.executable,
+            "-c",
+            (
+                "from meet2action.cli import cli; "
+                "import sys; "
+                f"sys.argv = {argv}; "
+                "cli()"
+            ),
+        ],
+        env=env,
+    )
+
+
 def test_parse_command_end_to_end_with_fixture(tmp_path: Path) -> None:
     fixture = Path("tests/fixtures/notes_sample.txt")
     out_file = tmp_path / "actions.md"
     env = os.environ.copy()
     env["PYTHONPATH"] = "src"
 
-    result = subprocess.run(
+    result = _run_cli_command(
         [sys.executable, "-m", "meet2action.cli", "parse", str(fixture), "--out", str(out_file)],
-        capture_output=True,
-        text=True,
-        check=False,
-        env=env,
+        env,
     )
 
     assert result.returncode == 0
@@ -34,22 +58,9 @@ def test_console_script_callable_dispatches_parse_command(tmp_path: Path) -> Non
     env = os.environ.copy()
     env["PYTHONPATH"] = "src"
 
-    result = subprocess.run(
-        [
-            sys.executable,
-            "-c",
-            (
-                "from meet2action.cli import cli; "
-                "import sys; "
-                "sys.argv = ['meet2action', 'parse', 'tests/fixtures/notes_sample.txt', '--out', "
-                f"r'{out_file}']; "
-                "cli()"
-            ),
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
-        env=env,
+    result = _run_console_script(
+        ["parse", str(fixture), "--out", str(out_file)],
+        env,
     )
 
     assert result.returncode == 0
@@ -63,24 +74,48 @@ def test_console_script_callable_returns_error_for_missing_input(tmp_path: Path)
     env = os.environ.copy()
     env["PYTHONPATH"] = "src"
 
-    result = subprocess.run(
-        [
-            sys.executable,
-            "-c",
-            (
-                "from meet2action.cli import cli; "
-                "import sys; "
-                "sys.argv = ['meet2action', 'parse', "
-                f"r'{missing}', '--out', r'{out_file}']; "
-                "cli()"
-            ),
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
-        env=env,
+    result = _run_console_script(
+        ["parse", str(missing), "--out", str(out_file)],
+        env,
     )
 
     assert result.returncode == 1
     assert f"Error: input file does not exist: {missing}" in result.stdout
     assert not out_file.exists()
+
+
+def test_console_script_callable_returns_error_for_invalid_extension(tmp_path: Path) -> None:
+    invalid_input = tmp_path / "notes.csv"
+    invalid_input.write_text("Alice to draft kickoff agenda by 2026-03-20.\n", encoding="utf-8")
+    out_file = tmp_path / "actions.md"
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(
+        ["parse", str(invalid_input), "--out", str(out_file)],
+        env,
+    )
+
+    assert result.returncode == 1
+    assert "Error: input file must be .md or .txt" in result.stdout
+    assert not out_file.exists()
+
+
+def test_console_script_callable_writes_empty_checklist_when_no_actions_found(
+    tmp_path: Path,
+) -> None:
+    notes = tmp_path / "notes.txt"
+    notes.write_text("Discussion: roadmap\nStatus: on track\n", encoding="utf-8")
+    out_file = tmp_path / "actions.md"
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(
+        ["parse", str(notes), "--out", str(out_file)],
+        env,
+    )
+
+    assert result.returncode == 0
+    assert "Parsed 2 lines, found 0 candidate lines, extracted 0 actions." in result.stdout
+    assert out_file.exists()
+    assert out_file.read_text(encoding="utf-8") == "# Action Items\n\n_No action items found._\n"

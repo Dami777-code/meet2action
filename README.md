@@ -43,6 +43,20 @@ pip install -e .
 meet2action parse notes.md --out actions.md
 ```
 
+The input file must be a local `.md` or `.txt` file.
+
+Expected validation failures return a non-zero exit code and do not write an output file:
+
+```bash
+meet2action parse /tmp/missing.txt --out actions.md
+# Error: input file does not exist: /tmp/missing.txt
+```
+
+```bash
+meet2action parse notes.csv --out actions.md
+# Error: input file must be .md or .txt
+```
+
 ## Example Input
 
 ```text
@@ -60,6 +74,14 @@ General discussion about roadmap.
 - [ ] Draft kickoff agenda (owner: Alice, due: 2026-03-20)
 - [ ] Send vendor shortlist (due: Friday)
 - [ ] Follow up with legal (owner: Bob)
+```
+
+If no actionable lines are found, the CLI still writes a valid checklist file:
+
+```markdown
+# Action Items
+
+_No action items found._
 ```
 
 
