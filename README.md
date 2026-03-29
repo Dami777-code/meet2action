@@ -37,6 +37,12 @@ source .venv/bin/activate
 pip install -e .
 ```
 
+For the smallest release-validation pass in a fresh environment, install the test extra:
+
+```bash
+pip install -e ".[test]"
+```
+
 ## Usage
 
 ```bash
@@ -55,6 +61,15 @@ meet2action parse /tmp/missing.txt --out actions.md
 ```bash
 meet2action parse notes.csv --out actions.md
 # Error: input file must be .md or .txt
+```
+
+## Validation
+
+Smallest strict-V1 validation commands in a fresh environment:
+
+```bash
+python -m pytest
+meet2action parse tests/fixtures/notes_sample.txt --out actions.md
 ```
 
 ## Example Input
