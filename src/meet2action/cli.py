@@ -4,7 +4,7 @@ from pathlib import Path
 
 import typer
 
-from .formatter import format_actions_markdown
+from .formatter import format_actions_json, format_actions_markdown
 from .parser import parse_actions
 
 app = typer.Typer(
@@ -22,7 +22,7 @@ def cli() -> None:
     app()
 
 
-def run_parse(input_file: Path, out: Path) -> None:
+def run_parse(input_file: Path, out: Path, fmt: str) -> None:
     if not input_file.exists():
         typer.echo(f"Error: input file does not exist: {input_file}")
         raise typer.Exit(code=1)
@@ -32,7 +32,13 @@ def run_parse(input_file: Path, out: Path) -> None:
 
     text = input_file.read_text(encoding="utf-8")
     result = parse_actions(text)
-    rendered = format_actions_markdown(result.actions)
+
+    if fmt == "json":
+        rendered = format_actions_json(result)
+        label = "JSON"
+    else:
+        rendered = format_actions_markdown(result.actions)
+        label = "markdown checklist"
 
     out.write_text(rendered, encoding="utf-8")
 
@@ -40,7 +46,7 @@ def run_parse(input_file: Path, out: Path) -> None:
         f"Parsed {result.total_lines} lines, found {result.candidate_lines} candidate lines, "
         f"extracted {len(result.actions)} actions."
     )
-    typer.echo(f"Wrote markdown checklist to: {out}")
+    typer.echo(f"Wrote {label} to: {out}")
 
 
 @app.command()
@@ -50,12 +56,22 @@ def parse(
         Path("actions.md"),
         "--out",
         "-o",
-        help="Output markdown path",
+        help="Output file path",
+    ),
+    fmt: str = typer.Option(
+        "markdown",
+        "--format",
+        "-f",
+        help="Output format: markdown or json",
     ),
 ) -> None:
-    """Parse a notes file into a markdown checklist."""
+    """Parse a notes file into an action checklist."""
 
-    run_parse(input_file, out)
+    if fmt not in {"markdown", "json"}:
+        typer.echo(f"Error: unsupported format '{fmt}'. Choose markdown or json.")
+        raise typer.Exit(code=1)
+
+    run_parse(input_file, out, fmt)
 
 
 if __name__ == "__main__":

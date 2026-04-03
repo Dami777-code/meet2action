@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import sys
@@ -99,6 +100,32 @@ def test_console_script_callable_returns_error_for_invalid_extension(tmp_path: P
     assert result.returncode == 1
     assert "Error: input file must be .md or .txt" in result.stdout
     assert not out_file.exists()
+
+
+def test_console_script_callable_format_json_produces_valid_json(tmp_path: Path) -> None:
+    fixture = Path("tests/fixtures/notes_sample.txt")
+    out_file = tmp_path / "actions.json"
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(
+        ["parse", str(fixture), "--out", str(out_file), "--format", "json"],
+        env,
+    )
+
+    assert result.returncode == 0
+    assert "extracted 3 actions" in result.stdout
+    assert "Wrote JSON to:" in result.stdout
+    assert out_file.exists()
+
+    data = json.loads(out_file.read_text(encoding="utf-8"))
+    assert data["total_lines"] == 4
+    assert data["candidate_lines"] == 3
+    assert len(data["actions"]) == 3
+    tasks = [a["task"] for a in data["actions"]]
+    assert "Draft kickoff agenda" in tasks
+    assert "Send vendor shortlist" in tasks
+    assert "Follow up with legal" in tasks
 
 
 def test_console_script_callable_writes_empty_checklist_when_no_actions_found(
