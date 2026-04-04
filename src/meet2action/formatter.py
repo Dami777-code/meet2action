@@ -1,4 +1,6 @@
-from .models import ActionItem
+import json
+
+from .models import ActionItem, ParseResult
 
 
 def format_actions_markdown(actions: list[ActionItem]) -> str:
@@ -21,3 +23,23 @@ def format_actions_markdown(actions: list[ActionItem]) -> str:
 
     lines.append("")
     return "\n".join(lines)
+
+
+def format_actions_json(result: ParseResult) -> str:
+    """Render parse result as JSON for downstream tooling."""
+
+    return json.dumps(
+        {
+            "total_lines": result.total_lines,
+            "candidate_lines": result.candidate_lines,
+            "actions": [
+                {
+                    "task": action.task,
+                    "owner": action.owner,
+                    "due_date": action.due_date,
+                }
+                for action in result.actions
+            ],
+        },
+        indent=2,
+    )

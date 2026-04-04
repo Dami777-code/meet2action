@@ -49,6 +49,12 @@ pip install -e ".[test]"
 meet2action parse notes.md --out actions.md
 ```
 
+To produce machine-readable JSON instead of markdown:
+
+```bash
+meet2action parse notes.md --format json --out actions.json
+```
+
 The input file must be a local `.md` or `.txt` file.
 
 Expected validation failures return a non-zero exit code and do not write an output file:
@@ -65,11 +71,10 @@ meet2action parse notes.csv --out actions.md
 
 ## Validation
 
-Smallest strict-V1 validation commands in a fresh environment:
-
 ```bash
 python -m pytest
 meet2action parse tests/fixtures/notes_sample.txt --out actions.md
+meet2action parse tests/fixtures/notes_sample.txt --format json --out actions.json
 ```
 
 ## Example Input
@@ -89,6 +94,20 @@ General discussion about roadmap.
 - [ ] Draft kickoff agenda (owner: Alice, due: 2026-03-20)
 - [ ] Send vendor shortlist (due: Friday)
 - [ ] Follow up with legal (owner: Bob)
+```
+
+With `--format json`:
+
+```json
+{
+  "total_lines": 4,
+  "candidate_lines": 3,
+  "actions": [
+    { "task": "Draft kickoff agenda", "owner": "Alice", "due_date": "2026-03-20" },
+    { "task": "Send vendor shortlist", "owner": null, "due_date": "Friday" },
+    { "task": "Follow up with legal", "owner": "Bob", "due_date": null }
+  ]
+}
 ```
 
 If no actionable lines are found, the CLI still writes a valid checklist file:
