@@ -146,3 +146,102 @@ def test_console_script_callable_writes_empty_checklist_when_no_actions_found(
     assert "Parsed 2 lines, found 0 candidate lines, extracted 0 actions." in result.stdout
     assert out_file.exists()
     assert out_file.read_text(encoding="utf-8") == "# Action Items\n\n_No action items found._\n"
+
+
+def test_parse_directory_produces_per_file_output(tmp_path: Path) -> None:
+    (tmp_path / "meeting1.txt").write_text(
+        "Alice to draft kickoff agenda by 2026-03-20.\n", encoding="utf-8"
+    )
+    (tmp_path / "meeting2.md").write_text(
+        "Bob will follow up with legal.\n", encoding="utf-8"
+    )
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(["parse", str(tmp_path)], env)
+
+    assert result.returncode == 0
+    assert (tmp_path / "meeting1_actions.md").exists()
+    assert (tmp_path / "meeting2_actions.md").exists()
+    assert "Draft kickoff agenda" in (tmp_path / "meeting1_actions.md").read_text(encoding="utf-8")
+    assert "Follow up with legal" in (tmp_path / "meeting2_actions.md").read_text(encoding="utf-8")
+
+
+def test_parse_directory_json_format(tmp_path: Path) -> None:
+    (tmp_path / "notes.txt").write_text(
+        "Alice and Bob to review the deck.\n", encoding="utf-8"
+    )
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(["parse", str(tmp_path), "--format", "json"], env)
+
+    assert result.returncode == 0
+    out_file = tmp_path / "notes_actions.json"
+    assert out_file.exists()
+    data = json.loads(out_file.read_text(encoding="utf-8"))
+    assert data["actions"][0]["owner"] == "Alice, Bob"
+
+
+def test_parse_directory_with_out_flag_errors(tmp_path: Path) -> None:
+    (tmp_path / "notes.txt").write_text("Alice to send report.\n", encoding="utf-8")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(
+        ["parse", str(tmp_path), "--out", str(tmp_path / "out.md")], env
+    )
+
+    assert result.returncode == 1
+    assert "Error: --out is not valid when input is a directory." in result.stdout
+
+
+def test_parse_directory_empty_errors(tmp_path: Path) -> None:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(["parse", str(tmp_path)], env)
+
+    assert result.returncode == 1
+    assert "No .md or .txt files found in:" in result.stdout
+
+
+def test_parse_directory_ignores_non_notes_files(tmp_path: Path) -> None:
+    (tmp_path / "notes.txt").write_text("Alice to send report.\n", encoding="utf-8")
+    (tmp_path / "data.csv").write_text("col1,col2\nval1,val2\n", encoding="utf-8")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(["parse", str(tmp_path)], env)
+
+    assert result.returncode == 0
+    assert (tmp_path / "notes_actions.md").exists()
+    assert not (tmp_path / "data_actions.md").exists()
+
+
+def test_parse_single_file_out_default_unchanged(tmp_path: Path) -> None:
+    notes = tmp_path / "notes.txt"
+    notes.write_text("Alice to send report.\n", encoding="utf-8")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            (
+                "from meet2action.cli import cli; "
+                "import sys; "
+                f"sys.argv = {repr(['meet2action', 'parse', str(notes)])}; "
+                "cli()"
+            ),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+        cwd=str(tmp_path),
+    )
+
+    assert result.returncode == 0
+    assert (tmp_path / "actions.md").exists()

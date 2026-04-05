@@ -116,3 +116,43 @@ Alice: send updated report by Monday.
     assert result.actions[0].owner == "Alice"
     assert result.actions[0].task == "Send updated report"
     assert result.actions[0].due_date == "Monday"
+
+
+def test_parse_actions_multi_owner_and_syntax() -> None:
+    text = """
+Alice and Bob to review the deck.
+Alice and Bob will finalize the budget.
+"""
+    result = parse_actions(text)
+
+    assert len(result.actions) == 2
+    assert result.actions[0].owner == "Alice, Bob"
+    assert result.actions[0].task == "Review the deck"
+    assert result.actions[1].owner == "Alice, Bob"
+    assert result.actions[1].task == "Finalize the budget"
+
+
+def test_parse_actions_multi_owner_csv_syntax() -> None:
+    text = """
+Alice, Bob to send the report.
+Alice, Bob, Carol to prepare slides.
+"""
+    result = parse_actions(text)
+
+    assert len(result.actions) == 2
+    assert result.actions[0].owner == "Alice, Bob"
+    assert result.actions[0].task == "Send the report"
+    assert result.actions[1].owner == "Alice, Bob, Carol"
+    assert result.actions[1].task == "Prepare slides"
+
+
+def test_parse_actions_single_owner_unaffected_by_multi_owner_patterns() -> None:
+    text = """
+Alice to draft kickoff agenda.
+Bob will follow up with legal.
+"""
+    result = parse_actions(text)
+
+    assert len(result.actions) == 2
+    assert result.actions[0].owner == "Alice"
+    assert result.actions[1].owner == "Bob"

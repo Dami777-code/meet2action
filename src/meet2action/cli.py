@@ -49,14 +49,33 @@ def run_parse(input_file: Path, out: Path, fmt: str) -> None:
     typer.echo(f"Wrote {label} to: {out}")
 
 
+def _derive_output_path(input_file: Path, fmt: str) -> Path:
+    ext = "_actions.json" if fmt == "json" else "_actions.md"
+    return input_file.parent / (input_file.stem + ext)
+
+
+def _run_parse_directory(input_dir: Path, fmt: str) -> None:
+    files = sorted(
+        f for f in input_dir.iterdir()
+        if f.is_file() and f.suffix.lower() in {".md", ".txt"}
+    )
+    if not files:
+        typer.echo(f"No .md or .txt files found in: {input_dir}")
+        raise typer.Exit(code=1)
+
+    for input_file in files:
+        out = _derive_output_path(input_file, fmt)
+        run_parse(input_file, out, fmt)
+
+
 @app.command()
 def parse(
-    input_file: Path = typer.Argument(..., help="Path to .md or .txt notes"),
-    out: Path = typer.Option(
-        Path("actions.md"),
+    input_file: Path = typer.Argument(..., help="Path to .md or .txt notes file, or a directory"),
+    out: Path | None = typer.Option(
+        None,
         "--out",
         "-o",
-        help="Output file path",
+        help="Output file path. Not valid when input is a directory.",
     ),
     fmt: str = typer.Option(
         "markdown",
@@ -65,13 +84,20 @@ def parse(
         help="Output format: markdown or json",
     ),
 ) -> None:
-    """Parse a notes file into an action checklist."""
+    """Parse a notes file (or directory of notes files) into action checklists."""
 
     if fmt not in {"markdown", "json"}:
         typer.echo(f"Error: unsupported format '{fmt}'. Choose markdown or json.")
         raise typer.Exit(code=1)
 
-    run_parse(input_file, out, fmt)
+    if input_file.is_dir():
+        if out is not None:
+            typer.echo("Error: --out is not valid when input is a directory.")
+            raise typer.Exit(code=1)
+        _run_parse_directory(input_file, fmt)
+        return
+
+    run_parse(input_file, out if out is not None else Path("actions.md"), fmt)
 
 
 if __name__ == "__main__":

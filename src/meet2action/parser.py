@@ -45,6 +45,17 @@ _NON_ACTION_LABELS = {
     "discussion",
     "attendees",
 }
+_NAME = r"[A-Z][a-z]+"
+_NAMES_AND_RE = rf"(?:{_NAME})\s+and\s+(?:{_NAME})"
+_NAMES_CSV_RE = rf"(?:{_NAME})(?:\s*,\s*(?:{_NAME}))+"
+
+_MULTI_OWNER_PATTERNS = [
+    re.compile(rf"^({_NAMES_AND_RE})\s+to\s+(.+)$"),
+    re.compile(rf"^({_NAMES_CSV_RE})\s+to\s+(.+)$"),
+    re.compile(rf"^({_NAMES_AND_RE})\s+will\s+(.+)$"),
+    re.compile(rf"^({_NAMES_CSV_RE})\s+will\s+(.+)$"),
+]
+
 _OWNER_PATTERNS = [
     re.compile(r"^([A-Z][a-z]+)\s+to\s+(.+)$"),
     re.compile(r"^([A-Z][a-z]+)\s+will\s+(.+)$"),
@@ -145,7 +156,17 @@ def _extract_action_item(line: str) -> ActionItem | None:
     return ActionItem(task=task, owner=owner, due_date=due_date)
 
 
+def _normalize_multi_owner(raw: str) -> str:
+    parts = re.split(r"\s+and\s+|,", raw)
+    return ", ".join(p.strip() for p in parts if p.strip())
+
+
 def _extract_owner(line: str) -> tuple[str | None, str]:
+    for pattern in _MULTI_OWNER_PATTERNS:
+        match = pattern.match(line)
+        if match:
+            return _normalize_multi_owner(match.group(1)), match.group(2)
+
     for pattern in _OWNER_PATTERNS:
         match = pattern.match(line)
         if match:
