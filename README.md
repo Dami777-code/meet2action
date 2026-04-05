@@ -43,6 +43,13 @@ For the smallest release-validation pass in a fresh environment, install the tes
 pip install -e ".[test]"
 ```
 
+<<<<<<< HEAD
+For the smallest release-validation pass in a fresh environment, install the test extra:
+
+```bash
+pip install -e ".[test]"
+```
+
 ## Usage
 
 ```bash
@@ -76,6 +83,36 @@ python -m pytest
 meet2action parse tests/fixtures/notes_sample.txt --out actions.md
 meet2action parse tests/fixtures/notes_sample.txt --format json --out actions.json
 ```
+=======
+## Usage
+
+```bash
+meet2action parse notes.md --out actions.md
+```
+
+The input file must be a local `.md` or `.txt` file.
+
+Expected validation failures return a non-zero exit code and do not write an output file:
+
+```bash
+meet2action parse /tmp/missing.txt --out actions.md
+# Error: input file does not exist: /tmp/missing.txt
+```
+
+```bash
+meet2action parse notes.csv --out actions.md
+# Error: input file must be .md or .txt
+```
+
+## Validation
+
+Smallest strict-V1 validation commands in a fresh environment:
+
+```bash
+python -m pytest
+meet2action parse tests/fixtures/notes_sample.txt --out actions.md
+```
+>>>>>>> origin/work-v1-validation
 
 ## Example Input
 
