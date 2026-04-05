@@ -12,11 +12,8 @@ app = typer.Typer(
     add_completion=False,
 )
 
-<<<<<<< HEAD
 _NOTES_EXTENSIONS: frozenset[str] = frozenset({".md", ".txt"})
 
-=======
->>>>>>> origin/feat/v2-multi-owner-batch-input
 
 @app.callback()
 def main() -> None:
@@ -27,19 +24,11 @@ def cli() -> None:
     app()
 
 
-<<<<<<< HEAD
 def run_parse(input_file: Path, out: Path, fmt: str, dry_run: bool = False) -> None:
     if not input_file.exists():
         typer.echo(f"Error: input file does not exist: {input_file}")
         raise typer.Exit(code=1)
     if input_file.suffix.lower() not in _NOTES_EXTENSIONS:
-=======
-def run_parse(input_file: Path, out: Path, fmt: str) -> None:
-    if not input_file.exists():
-        typer.echo(f"Error: input file does not exist: {input_file}")
-        raise typer.Exit(code=1)
-    if input_file.suffix.lower() not in {".md", ".txt"}:
->>>>>>> origin/feat/v2-multi-owner-batch-input
         typer.echo("Error: input file must be .md or .txt")
         raise typer.Exit(code=1)
 
@@ -53,16 +42,10 @@ def run_parse(input_file: Path, out: Path, fmt: str) -> None:
         rendered = format_actions_markdown(result.actions)
         label = "markdown checklist"
 
-<<<<<<< HEAD
-=======
-    out.write_text(rendered, encoding="utf-8")
-
->>>>>>> origin/feat/v2-multi-owner-batch-input
     typer.echo(
         f"Parsed {result.total_lines} lines, found {result.candidate_lines} candidate lines, "
         f"extracted {len(result.actions)} actions."
     )
-<<<<<<< HEAD
 
     if dry_run:
         typer.echo(f"[dry-run] would write {label} to: {out}")
@@ -126,36 +109,15 @@ def _run_parse_directory(
     dry_run: bool,
 ) -> None:
     files = _collect_notes_files(input_dir, recursive)
-=======
-    typer.echo(f"Wrote {label} to: {out}")
-
-
-def _derive_output_path(input_file: Path, fmt: str) -> Path:
-    ext = "_actions.json" if fmt == "json" else "_actions.md"
-    return input_file.parent / (input_file.stem + ext)
-
-
-def _run_parse_directory(input_dir: Path, fmt: str) -> None:
-    files = sorted(
-        f for f in input_dir.iterdir()
-        if f.is_file() and f.suffix.lower() in {".md", ".txt"}
-    )
->>>>>>> origin/feat/v2-multi-owner-batch-input
     if not files:
         typer.echo(f"No .md or .txt files found in: {input_dir}")
         raise typer.Exit(code=1)
 
-<<<<<<< HEAD
     _check_output_collisions(files, fmt, input_dir, out_dir)
 
     for input_file in files:
         out = _derive_output_path(input_file, fmt, input_dir, out_dir)
         run_parse(input_file, out, fmt, dry_run=dry_run)
-=======
-    for input_file in files:
-        out = _derive_output_path(input_file, fmt)
-        run_parse(input_file, out, fmt)
->>>>>>> origin/feat/v2-multi-owner-batch-input
 
 
 @app.command()
@@ -173,7 +135,6 @@ def parse(
         "-f",
         help="Output format: markdown or json",
     ),
-<<<<<<< HEAD
     recursive: bool = typer.Option(
         False,
         "--recursive",
@@ -193,8 +154,6 @@ def parse(
         "--dry-run",
         help="Print output to stdout without writing any files.",
     ),
-=======
->>>>>>> origin/feat/v2-multi-owner-batch-input
 ) -> None:
     """Parse a notes file (or directory of notes files) into action checklists."""
 
@@ -206,7 +165,6 @@ def parse(
         if out is not None:
             typer.echo("Error: --out is not valid when input is a directory.")
             raise typer.Exit(code=1)
-<<<<<<< HEAD
         _run_parse_directory(input_file, fmt, recursive=recursive, out_dir=out_dir, dry_run=dry_run)
         return
 
@@ -224,12 +182,6 @@ def parse(
         fmt,
         dry_run=dry_run,
     )
-=======
-        _run_parse_directory(input_file, fmt)
-        return
-
-    run_parse(input_file, out if out is not None else Path("actions.md"), fmt)
->>>>>>> origin/feat/v2-multi-owner-batch-input
 
 
 if __name__ == "__main__":

@@ -147,13 +147,7 @@ def test_parse_directory_produces_per_file_output(tmp_path: Path) -> None:
     (tmp_path / "meeting1.txt").write_text(
         "Alice to draft kickoff agenda by 2026-03-20.\n", encoding="utf-8"
     )
-<<<<<<< HEAD
     (tmp_path / "meeting2.md").write_text("Bob will follow up with legal.\n", encoding="utf-8")
-=======
-    (tmp_path / "meeting2.md").write_text(
-        "Bob will follow up with legal.\n", encoding="utf-8"
-    )
->>>>>>> origin/feat/v2-multi-owner-batch-input
     env = os.environ.copy()
     env["PYTHONPATH"] = "src"
 
@@ -167,13 +161,7 @@ def test_parse_directory_produces_per_file_output(tmp_path: Path) -> None:
 
 
 def test_parse_directory_json_format(tmp_path: Path) -> None:
-<<<<<<< HEAD
     (tmp_path / "notes.txt").write_text("Alice and Bob to review the deck.\n", encoding="utf-8")
-=======
-    (tmp_path / "notes.txt").write_text(
-        "Alice and Bob to review the deck.\n", encoding="utf-8"
-    )
->>>>>>> origin/feat/v2-multi-owner-batch-input
     env = os.environ.copy()
     env["PYTHONPATH"] = "src"
 
@@ -191,13 +179,7 @@ def test_parse_directory_with_out_flag_errors(tmp_path: Path) -> None:
     env = os.environ.copy()
     env["PYTHONPATH"] = "src"
 
-<<<<<<< HEAD
     result = _run_console_script(["parse", str(tmp_path), "--out", str(tmp_path / "out.md")], env)
-=======
-    result = _run_console_script(
-        ["parse", str(tmp_path), "--out", str(tmp_path / "out.md")], env
-    )
->>>>>>> origin/feat/v2-multi-owner-batch-input
 
     assert result.returncode == 1
     assert "Error: --out is not valid when input is a directory." in result.stdout
@@ -252,7 +234,6 @@ def test_parse_single_file_out_default_unchanged(tmp_path: Path) -> None:
 
     assert result.returncode == 0
     assert (tmp_path / "actions.md").exists()
-<<<<<<< HEAD
 
 
 # ---------------------------------------------------------------------------
@@ -433,5 +414,3 @@ def test_parse_dry_run_json_format_writes_nothing(tmp_path: Path) -> None:
     assert result.returncode == 0
     assert not out_file.exists()
     assert "[dry-run] would write JSON to:" in result.stdout
-=======
->>>>>>> origin/feat/v2-multi-owner-batch-input
