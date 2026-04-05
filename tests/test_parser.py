@@ -68,8 +68,6 @@ Alice to finalize report by 2026-03-07.
     assert result.actions[2].due_date == "2026-03-07"
 
 
-
-
 def test_parse_actions_due_date_guardrails_accept_real_leap_day_only() -> None:
     text = """
 Alice to submit compliance report by 2024-02-29.

@@ -21,12 +21,7 @@ def _run_console_script(args: list[str], env: dict[str, str]) -> subprocess.Comp
         [
             sys.executable,
             "-c",
-            (
-                "from meet2action.cli import cli; "
-                "import sys; "
-                f"sys.argv = {argv}; "
-                "cli()"
-            ),
+            (f"from meet2action.cli import cli; import sys; sys.argv = {argv}; cli()"),
         ],
         env=env,
     )
@@ -152,9 +147,7 @@ def test_parse_directory_produces_per_file_output(tmp_path: Path) -> None:
     (tmp_path / "meeting1.txt").write_text(
         "Alice to draft kickoff agenda by 2026-03-20.\n", encoding="utf-8"
     )
-    (tmp_path / "meeting2.md").write_text(
-        "Bob will follow up with legal.\n", encoding="utf-8"
-    )
+    (tmp_path / "meeting2.md").write_text("Bob will follow up with legal.\n", encoding="utf-8")
     env = os.environ.copy()
     env["PYTHONPATH"] = "src"
 
@@ -168,9 +161,7 @@ def test_parse_directory_produces_per_file_output(tmp_path: Path) -> None:
 
 
 def test_parse_directory_json_format(tmp_path: Path) -> None:
-    (tmp_path / "notes.txt").write_text(
-        "Alice and Bob to review the deck.\n", encoding="utf-8"
-    )
+    (tmp_path / "notes.txt").write_text("Alice and Bob to review the deck.\n", encoding="utf-8")
     env = os.environ.copy()
     env["PYTHONPATH"] = "src"
 
@@ -188,9 +179,7 @@ def test_parse_directory_with_out_flag_errors(tmp_path: Path) -> None:
     env = os.environ.copy()
     env["PYTHONPATH"] = "src"
 
-    result = _run_console_script(
-        ["parse", str(tmp_path), "--out", str(tmp_path / "out.md")], env
-    )
+    result = _run_console_script(["parse", str(tmp_path), "--out", str(tmp_path / "out.md")], env)
 
     assert result.returncode == 1
     assert "Error: --out is not valid when input is a directory." in result.stdout
@@ -245,3 +234,183 @@ def test_parse_single_file_out_default_unchanged(tmp_path: Path) -> None:
 
     assert result.returncode == 0
     assert (tmp_path / "actions.md").exists()
+
+
+# ---------------------------------------------------------------------------
+# --recursive
+# ---------------------------------------------------------------------------
+
+
+def test_parse_recursive_finds_files_in_subdirectories(tmp_path: Path) -> None:
+    sub = tmp_path / "sub"
+    sub.mkdir()
+    (tmp_path / "top.txt").write_text("Alice to send report.\n", encoding="utf-8")
+    (sub / "nested.txt").write_text("Bob will review the deck.\n", encoding="utf-8")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(["parse", str(tmp_path), "--recursive"], env)
+
+    assert result.returncode == 0
+    assert (tmp_path / "top_actions.md").exists()
+    assert (sub / "nested_actions.md").exists()
+
+
+def test_parse_recursive_empty_tree_errors(tmp_path: Path) -> None:
+    sub = tmp_path / "sub"
+    sub.mkdir()
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(["parse", str(tmp_path), "--recursive"], env)
+
+    assert result.returncode == 1
+    assert "No .md or .txt files found in:" in result.stdout
+
+
+def test_parse_recursive_with_single_file_errors(tmp_path: Path) -> None:
+    notes = tmp_path / "notes.txt"
+    notes.write_text("Alice to send report.\n", encoding="utf-8")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(["parse", str(notes), "--recursive"], env)
+
+    assert result.returncode == 1
+    assert "Error: --recursive requires a directory input." in result.stdout
+
+
+# ---------------------------------------------------------------------------
+# --out-dir
+# ---------------------------------------------------------------------------
+
+
+def test_parse_out_dir_places_files_in_specified_directory(tmp_path: Path) -> None:
+    input_dir = tmp_path / "notes"
+    input_dir.mkdir()
+    out_dir = tmp_path / "output"
+    (input_dir / "meeting.txt").write_text("Alice to draft kickoff agenda.\n", encoding="utf-8")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(["parse", str(input_dir), "--out-dir", str(out_dir)], env)
+
+    assert result.returncode == 0
+    assert (out_dir / "meeting_actions.md").exists()
+    assert not (input_dir / "meeting_actions.md").exists()
+
+
+def test_parse_out_dir_creates_directory_if_absent(tmp_path: Path) -> None:
+    input_dir = tmp_path / "notes"
+    input_dir.mkdir()
+    out_dir = tmp_path / "new" / "nested" / "output"
+    (input_dir / "meeting.txt").write_text("Alice to draft kickoff agenda.\n", encoding="utf-8")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(["parse", str(input_dir), "--out-dir", str(out_dir)], env)
+
+    assert result.returncode == 0
+    assert out_dir.is_dir()
+    assert (out_dir / "meeting_actions.md").exists()
+
+
+def test_parse_out_dir_with_recursive_preserves_relative_structure(tmp_path: Path) -> None:
+    input_dir = tmp_path / "notes"
+    sub = input_dir / "2026" / "Q1"
+    sub.mkdir(parents=True)
+    (input_dir / "top.txt").write_text("Alice to send report.\n", encoding="utf-8")
+    (sub / "standup.txt").write_text("Bob will review the deck.\n", encoding="utf-8")
+    out_dir = tmp_path / "output"
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(
+        ["parse", str(input_dir), "--recursive", "--out-dir", str(out_dir)], env
+    )
+
+    assert result.returncode == 0
+    assert (out_dir / "top_actions.md").exists()
+    assert (out_dir / "2026" / "Q1" / "standup_actions.md").exists()
+
+
+def test_parse_out_dir_with_single_file_errors(tmp_path: Path) -> None:
+    notes = tmp_path / "notes.txt"
+    notes.write_text("Alice to send report.\n", encoding="utf-8")
+    out_dir = tmp_path / "output"
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(["parse", str(notes), "--out-dir", str(out_dir)], env)
+
+    assert result.returncode == 1
+    assert "Error: --out-dir is not valid when input is a single file." in result.stdout
+
+
+# ---------------------------------------------------------------------------
+# Collision detection
+# ---------------------------------------------------------------------------
+
+
+def test_parse_directory_stem_collision_errors_before_any_write(tmp_path: Path) -> None:
+    (tmp_path / "notes.md").write_text("Alice to draft agenda.\n", encoding="utf-8")
+    (tmp_path / "notes.txt").write_text("Bob will review deck.\n", encoding="utf-8")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(["parse", str(tmp_path)], env)
+
+    assert result.returncode == 1
+    assert "Error: output path collisions detected:" in result.stdout
+    # No output files written
+    assert not (tmp_path / "notes_actions.md").exists()
+
+
+# ---------------------------------------------------------------------------
+# --dry-run
+# ---------------------------------------------------------------------------
+
+
+def test_parse_dry_run_single_file_writes_nothing(tmp_path: Path) -> None:
+    notes = tmp_path / "notes.txt"
+    notes.write_text("Alice to draft kickoff agenda by 2026-03-20.\n", encoding="utf-8")
+    out_file = tmp_path / "actions.md"
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(["parse", str(notes), "--out", str(out_file), "--dry-run"], env)
+
+    assert result.returncode == 0
+    assert not out_file.exists()
+    assert "[dry-run] would write markdown checklist to:" in result.stdout
+    assert "Draft kickoff agenda" in result.stdout
+
+
+def test_parse_dry_run_directory_writes_nothing(tmp_path: Path) -> None:
+    (tmp_path / "a.txt").write_text("Alice to send report.\n", encoding="utf-8")
+    (tmp_path / "b.txt").write_text("Bob will review deck.\n", encoding="utf-8")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(["parse", str(tmp_path), "--dry-run"], env)
+
+    assert result.returncode == 0
+    assert not (tmp_path / "a_actions.md").exists()
+    assert not (tmp_path / "b_actions.md").exists()
+    assert "[dry-run]" in result.stdout
+
+
+def test_parse_dry_run_json_format_writes_nothing(tmp_path: Path) -> None:
+    notes = tmp_path / "notes.txt"
+    notes.write_text("Alice to draft kickoff agenda by 2026-03-20.\n", encoding="utf-8")
+    out_file = tmp_path / "actions.json"
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(
+        ["parse", str(notes), "--out", str(out_file), "--format", "json", "--dry-run"], env
+    )
+
+    assert result.returncode == 0
+    assert not out_file.exists()
+    assert "[dry-run] would write JSON to:" in result.stdout

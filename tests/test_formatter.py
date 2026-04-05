@@ -38,7 +38,9 @@ def test_format_actions_json_shape() -> None:
     assert data["candidate_lines"] == 3
     assert len(data["actions"]) == 2
     assert data["actions"][0] == {
-        "task": "Draft kickoff agenda", "owner": "Alice", "due_date": "2026-03-20"
+        "task": "Draft kickoff agenda",
+        "owner": "Alice",
+        "due_date": "2026-03-20",
     }
     assert data["actions"][1] == {"task": "Follow up with legal", "owner": "Bob", "due_date": None}
 
