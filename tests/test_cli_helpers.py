@@ -40,12 +40,11 @@ def test_derive_output_path_with_out_dir_preserves_subdirectory(tmp_path):
     assert result == out_dir / "week1" / "monday_actions.md"
 
 
-def test_derive_output_path_out_dir_without_input_dir_falls_back_to_sibling(tmp_path):
-    # out_dir alone (no input_dir) → condition is False → sibling of input file
+def test_derive_output_path_out_dir_without_input_dir_raises(tmp_path):
     f = tmp_path / "notes.txt"
     out_dir = tmp_path / "output"
-    result = _derive_output_path(f, "markdown", input_dir=None, out_dir=out_dir)
-    assert result == tmp_path / "notes_actions.md"
+    with pytest.raises(AssertionError):
+        _derive_output_path(f, "markdown", input_dir=None, out_dir=out_dir)
 
 
 # ---------------------------------------------------------------------------

@@ -64,7 +64,8 @@ def _derive_output_path(
 ) -> Path:
     ext = "_actions.json" if fmt == "json" else "_actions.md"
     output_name = input_file.stem + ext
-    if out_dir is not None and input_dir is not None:
+    if out_dir is not None:
+        assert input_dir is not None, "_derive_output_path: out_dir requires input_dir"
         rel = input_file.parent.relative_to(input_dir)
         return out_dir / rel / output_name
     return input_file.parent / output_name
@@ -73,7 +74,11 @@ def _derive_output_path(
 def _collect_notes_files(input_dir: Path, recursive: bool) -> list[Path]:
     if recursive:
         return sorted(
-            f for f in input_dir.rglob("*") if f.is_file() and f.suffix.lower() in _NOTES_EXTENSIONS
+            f
+            for f in input_dir.rglob("*")
+            if f.is_file()
+            and f.suffix.lower() in _NOTES_EXTENSIONS
+            and not any(part.startswith(".") for part in f.relative_to(input_dir).parts)
         )
     return sorted(
         f for f in input_dir.iterdir() if f.is_file() and f.suffix.lower() in _NOTES_EXTENSIONS

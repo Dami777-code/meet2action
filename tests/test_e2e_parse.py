@@ -280,6 +280,21 @@ def test_parse_recursive_with_single_file_errors(tmp_path: Path) -> None:
     assert "Error: --recursive requires a directory input." in result.stdout
 
 
+def test_parse_recursive_skips_hidden_directories(tmp_path: Path) -> None:
+    (tmp_path / "visible.txt").write_text("Alice to send report.\n", encoding="utf-8")
+    hidden = tmp_path / ".hidden"
+    hidden.mkdir()
+    (hidden / "notes.txt").write_text("Bob will review deck.\n", encoding="utf-8")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = _run_console_script(["parse", str(tmp_path), "--recursive"], env)
+
+    assert result.returncode == 0
+    assert (tmp_path / "visible_actions.md").exists()
+    assert not (hidden / "notes_actions.md").exists()
+
+
 # ---------------------------------------------------------------------------
 # --out-dir
 # ---------------------------------------------------------------------------
