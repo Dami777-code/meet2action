@@ -8,7 +8,7 @@ Build a focused CLI tool that converts meeting notes into actionable markdown ch
 
 ## Current Phase
 
-Bootstrap and planning. Avoid premature complexity.
+V1 complete. Parser, formatter, CLI, and tests are all production-ready.
 
 ## V1 Boundaries (must respect)
 
