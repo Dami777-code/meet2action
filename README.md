@@ -5,7 +5,7 @@ Meeting-to-Action is a small CLI tool that converts raw meeting notes (`.md` or 
 ## V1 Scope
 
 - One CLI command: `parse`
-- Input: one local `.md` or `.txt` file
+- Input: one `.md`/`.txt` file, or a directory of notes files
 - Extraction of action items from bullets and sentences
 - Optional extraction of owner and due date only when obvious
 - Output: one markdown file with a standardized checklist format
@@ -37,13 +37,6 @@ source .venv/bin/activate
 pip install -e .
 ```
 
-For the smallest release-validation pass in a fresh environment, install the test extra:
-
-```bash
-pip install -e ".[test]"
-```
-
-<<<<<<< HEAD
 For the smallest release-validation pass in a fresh environment, install the test extra:
 
 ```bash
@@ -83,36 +76,6 @@ python -m pytest
 meet2action parse tests/fixtures/notes_sample.txt --out actions.md
 meet2action parse tests/fixtures/notes_sample.txt --format json --out actions.json
 ```
-=======
-## Usage
-
-```bash
-meet2action parse notes.md --out actions.md
-```
-
-The input file must be a local `.md` or `.txt` file.
-
-Expected validation failures return a non-zero exit code and do not write an output file:
-
-```bash
-meet2action parse /tmp/missing.txt --out actions.md
-# Error: input file does not exist: /tmp/missing.txt
-```
-
-```bash
-meet2action parse notes.csv --out actions.md
-# Error: input file must be .md or .txt
-```
-
-## Validation
-
-Smallest strict-V1 validation commands in a fresh environment:
-
-```bash
-python -m pytest
-meet2action parse tests/fixtures/notes_sample.txt --out actions.md
-```
->>>>>>> origin/work-v1-validation
 
 ## Example Input
 
@@ -184,6 +147,7 @@ meet2action/
 │   └── parser.py
 └── tests/
     ├── fixtures/notes_sample.txt
+    ├── test_cli_helpers.py
     ├── test_e2e_parse.py
     ├── test_formatter.py
     └── test_parser.py
