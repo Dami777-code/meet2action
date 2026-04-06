@@ -45,6 +45,7 @@ _NON_ACTION_LABELS = {
     "discussion",
     "attendees",
 }
+_PRONOUNS = frozenset({"We", "They", "He", "She", "It", "You"})
 _NAME = r"[A-Z][a-z]+"
 _NAMES_AND_RE = rf"(?:{_NAME})\s+and\s+(?:{_NAME})"
 _NAMES_CSV_RE = rf"(?:{_NAME})(?:\s*,\s*(?:{_NAME}))+"
@@ -165,11 +166,17 @@ def _extract_owner(line: str) -> tuple[str | None, str]:
     for pattern in _MULTI_OWNER_PATTERNS:
         match = pattern.match(line)
         if match:
-            return _normalize_multi_owner(match.group(1)), match.group(2)
+            raw_owner = match.group(1)
+            names = [n.strip() for n in re.split(r"\s+and\s+|,", raw_owner) if n.strip()]
+            if any(n in _PRONOUNS for n in names):
+                return None, match.group(2)
+            return _normalize_multi_owner(raw_owner), match.group(2)
 
     for pattern in _OWNER_PATTERNS:
         match = pattern.match(line)
         if match:
+            if match.group(1) in _PRONOUNS:
+                return None, match.group(2)
             return match.group(1), match.group(2)
 
     for pattern in _OWNER_PREFIX_PATTERNS:
