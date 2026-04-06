@@ -154,3 +154,86 @@ Bob will follow up with legal.
     assert len(result.actions) == 2
     assert result.actions[0].owner == "Alice"
     assert result.actions[1].owner == "Bob"
+
+
+def test_parse_actions_we_will_with_action_verb_is_kept() -> None:
+    # Lines starting with "we will" + a recognised action verb pass the
+    # candidate filter (unlike "we will discuss…" which is suppressed).
+    # "We" is a pronoun so owner is None; the verb-stripped remainder becomes
+    # the task, preserving clean task text and due date extraction.
+    text = """
+We will send the invites by Monday.
+We will review the proposals by Friday.
+"""
+    result = parse_actions(text)
+
+    assert len(result.actions) == 2
+    assert result.actions[0].owner is None
+    assert result.actions[0].task == "Send the invites"
+    assert result.actions[0].due_date == "Monday"
+    assert result.actions[1].owner is None
+    assert result.actions[1].task == "Review the proposals"
+    assert result.actions[1].due_date == "Friday"
+
+
+def test_parse_actions_pronoun_owner_is_not_extracted() -> None:
+    # Pronouns matched by the will/to patterns must not appear as owners.
+    text = """
+They will prepare the slides.
+He will finalize the budget by Thursday.
+She to send the summary.
+"""
+    result = parse_actions(text)
+
+    assert len(result.actions) == 3
+    for action in result.actions:
+        assert action.owner is None
+
+
+def test_parse_actions_multi_owner_with_due_date() -> None:
+    text = """
+Alice and Bob to finalize the report by 2026-04-15.
+"""
+    result = parse_actions(text)
+
+    assert len(result.actions) == 1
+    assert result.actions[0].owner == "Alice, Bob"
+    assert result.actions[0].task == "Finalize the report"
+    assert result.actions[0].due_date == "2026-04-15"
+
+
+def test_parse_actions_non_proper_name_colon_label_with_action_remainder_is_kept() -> None:
+    # Label is not a proper single name and not in the blocklist, but remainder
+    # looks like an action task — line should be extracted.
+    text = """
+Q3 Update: review the budget by Friday.
+"""
+    result = parse_actions(text)
+
+    assert len(result.actions) == 1
+    assert result.actions[0].due_date == "Friday"
+
+
+def test_parse_actions_non_proper_name_colon_label_with_non_action_remainder_is_dropped() -> None:
+    # Label is not a proper single name and not in the blocklist, but remainder
+    # does not look like an action task — line should be suppressed.
+    text = """
+Q3 Update: budget looks healthy.
+"""
+    result = parse_actions(text)
+
+    assert result.candidate_lines == 0
+    assert result.actions == []
+
+
+def test_parse_actions_at_prefix_without_task_hint_extracts_no_owner() -> None:
+    # @Name whose remainder lacks a recognised task-hint verb: owner is not
+    # extracted and the full raw line becomes the task text.
+    text = """
+@Bob remind Carol about the retro.
+"""
+    result = parse_actions(text)
+
+    assert len(result.actions) == 1
+    assert result.actions[0].owner is None
+    assert "@Bob" in result.actions[0].task
