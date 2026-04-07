@@ -1,5 +1,9 @@
 # Meeting-to-Action (Project C)
 
+![CI](https://github.com/Dami777-code/meet2action/actions/workflows/ci.yml/badge.svg)
+![PyPI](https://img.shields.io/pypi/v/meet2action)
+![Python](https://img.shields.io/pypi/pyversions/meet2action)
+
 Meeting-to-Action is a small CLI tool that converts raw meeting notes (`.md` or `.txt`) into a clean, actionable checklist containing tasks, optional owners, and optional due dates.
 
 ## V1 Scope

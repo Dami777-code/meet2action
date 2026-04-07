@@ -129,3 +129,29 @@ def test_check_output_collisions_no_false_positive_with_out_dir(tmp_path):
     out_dir = tmp_path / "out"
     # Different subdirs → different relative paths → no collision
     _check_output_collisions([f1, f2], "markdown", input_dir, out_dir)
+
+
+# ---------------------------------------------------------------------------
+# --version
+# ---------------------------------------------------------------------------
+
+
+def test_version_flag_exits_zero_and_prints_version() -> None:
+    import os
+    import subprocess
+    import sys
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+    argv = repr(["meet2action", "--version"])
+    cmd = f"from meet2action.cli import cli; import sys; sys.argv = {argv}; cli()"
+    result = subprocess.run(
+        [sys.executable, "-c", cmd],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+    )
+    assert result.returncode == 0
+    assert "meet2action" in result.stdout
+    assert "1.0.0" in result.stdout
