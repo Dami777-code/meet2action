@@ -153,5 +153,4 @@ def test_version_flag_exits_zero_and_prints_version() -> None:
         env=env,
     )
     assert result.returncode == 0
-    assert "meet2action" in result.stdout
-    assert "1.0.0" in result.stdout
+    assert result.stdout.strip() == "meet2action 1.0.0"
