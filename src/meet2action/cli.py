@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.metadata
 from pathlib import Path
 
 import typer
@@ -15,8 +16,23 @@ app = typer.Typer(
 _NOTES_EXTENSIONS: frozenset[str] = frozenset({".md", ".txt"})
 
 
+def _version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"meet2action {importlib.metadata.version('meet2action')}")
+        raise typer.Exit()
+
+
 @app.callback()
-def main() -> None:
+def main(
+    version: bool = typer.Option(
+        False,
+        "--version",
+        "-V",
+        callback=_version_callback,
+        is_eager=True,
+        help="Show version and exit.",
+    ),
+) -> None:
     """Meeting-to-Action CLI."""
 
 
