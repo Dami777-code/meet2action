@@ -73,6 +73,29 @@ def test_collect_notes_files_recursive_includes_nested(tmp_path):
     assert result == sorted([tmp_path / "root.txt", sub / "nested.md"])
 
 
+def test_collect_notes_files_skips_generated_outputs_in_flat_mode(tmp_path):
+    (tmp_path / "notes.txt").touch()
+    (tmp_path / "notes_actions.md").touch()
+    (tmp_path / "notes_actions.json").touch()
+
+    result = _collect_notes_files(tmp_path, recursive=False)
+
+    assert result == [tmp_path / "notes.txt"]
+
+
+def test_collect_notes_files_skips_generated_outputs_in_recursive_mode(tmp_path):
+    (tmp_path / "root.txt").touch()
+    sub = tmp_path / "deep"
+    sub.mkdir()
+    (sub / "nested.md").touch()
+    (sub / "nested_actions.md").touch()
+    (sub / "nested_actions.json").touch()
+
+    result = _collect_notes_files(tmp_path, recursive=True)
+
+    assert result == sorted([tmp_path / "root.txt", sub / "nested.md"])
+
+
 def test_collect_notes_files_extension_match_is_case_insensitive(tmp_path):
     (tmp_path / "upper.TXT").touch()
     (tmp_path / "mixed.Md").touch()

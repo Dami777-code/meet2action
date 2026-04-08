@@ -36,15 +36,15 @@ Meeting-to-Action is a small CLI tool that converts raw meeting notes (`.md` or 
 ## Installation
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 ```
 
-For the smallest release-validation pass in a fresh environment, install the test extra:
+For the full local validation pass, install the dev extra:
 
 ```bash
-pip install -e ".[test]"
+pip install -e ".[dev]"
 ```
 
 ## Usage
@@ -59,7 +59,25 @@ To produce machine-readable JSON instead of markdown:
 meet2action parse notes.md --format json --out actions.json
 ```
 
-The input file must be a local `.md` or `.txt` file.
+Without `--out`, the CLI writes beside the input:
+
+```bash
+meet2action parse notes.md
+# writes notes_actions.md next to notes.md
+
+meet2action parse notes.md --format json
+# writes notes_actions.json next to notes.md
+```
+
+You can also batch-parse a directory of notes files:
+
+```bash
+meet2action parse ./notes
+meet2action parse ./notes --recursive
+meet2action parse ./notes --format json --out-dir ./parsed
+```
+
+Single-file input must be a local `.md` or `.txt` file.
 
 Expected validation failures return a non-zero exit code and do not write an output file:
 
@@ -76,10 +94,14 @@ meet2action parse notes.csv --out actions.md
 ## Validation
 
 ```bash
-python -m pytest
+.venv/bin/pytest
+.venv/bin/ruff check .
+.venv/bin/python -m build
 meet2action parse tests/fixtures/notes_sample.txt --out actions.md
 meet2action parse tests/fixtures/notes_sample.txt --format json --out actions.json
 ```
+
+`python -m build` uses an isolated build environment by default, so the build backend dependencies must be available locally or installable from the current environment.
 
 ## Example Input
 
