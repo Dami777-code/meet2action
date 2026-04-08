@@ -12,8 +12,7 @@ git clone https://github.com/Dami777-code/meet2action.git
 cd meet2action
 python -m venv .venv
 source .venv/bin/activate
-pip install -e ".[test]"
-pip install ruff
+pip install -e ".[dev]"
 ```
 
 ## Running tests
