@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "meet2action"
-version = "1.0.0"
+version = "1.0.1"
 description = "CLI tool to convert meeting notes into actionable markdown checklists"
 readme = "README.md"
 license = "MIT"
