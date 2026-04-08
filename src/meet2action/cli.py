@@ -14,6 +14,7 @@ app = typer.Typer(
 )
 
 _NOTES_EXTENSIONS: frozenset[str] = frozenset({".md", ".txt"})
+# Prevent batch reruns from re-ingesting previously generated outputs.
 _GENERATED_OUTPUT_SUFFIXES: frozenset[str] = frozenset({"_actions.md", "_actions.json"})
 
 

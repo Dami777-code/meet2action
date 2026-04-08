@@ -177,3 +177,23 @@ def test_version_flag_exits_zero_and_prints_version() -> None:
     )
     assert result.returncode == 0
     assert result.stdout.strip() == "meet2action 1.0.0"
+
+
+def test_version_short_flag_exits_zero_and_prints_version() -> None:
+    import os
+    import subprocess
+    import sys
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+    argv = repr(["meet2action", "-V"])
+    cmd = f"from meet2action.cli import cli; import sys; sys.argv = {argv}; cli()"
+    result = subprocess.run(
+        [sys.executable, "-c", cmd],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+    )
+    assert result.returncode == 0
+    assert result.stdout.strip() == "meet2action 1.0.0"
