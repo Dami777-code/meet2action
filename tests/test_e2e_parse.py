@@ -208,7 +208,7 @@ def test_parse_directory_ignores_non_notes_files(tmp_path: Path) -> None:
     assert not (tmp_path / "data_actions.md").exists()
 
 
-def test_parse_single_file_out_default_unchanged(tmp_path: Path) -> None:
+def test_parse_single_file_default_output_uses_input_directory_and_stem(tmp_path: Path) -> None:
     notes = tmp_path / "notes.txt"
     notes.write_text("Alice to send report.\n", encoding="utf-8")
     env = os.environ.copy()
@@ -233,7 +233,41 @@ def test_parse_single_file_out_default_unchanged(tmp_path: Path) -> None:
     )
 
     assert result.returncode == 0
-    assert (tmp_path / "actions.md").exists()
+    assert "Wrote markdown checklist to:" in result.stdout
+    assert (tmp_path / "notes_actions.md").exists()
+
+
+def test_parse_single_file_json_default_output_uses_input_directory_and_format(
+    tmp_path: Path,
+) -> None:
+    notes = tmp_path / "notes.txt"
+    notes.write_text("Alice to send report.\n", encoding="utf-8")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            (
+                "from meet2action.cli import cli; "
+                "import sys; "
+                f"sys.argv = {repr(['meet2action', 'parse', str(notes), '--format', 'json'])}; "
+                "cli()"
+            ),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+        cwd=str(Path.cwd()),
+    )
+
+    assert result.returncode == 0
+    assert "Wrote JSON to:" in result.stdout
+    assert (tmp_path / "notes_actions.json").exists()
+    data = json.loads((tmp_path / "notes_actions.json").read_text(encoding="utf-8"))
+    assert data["actions"][0]["task"] == "Send report"
 
 
 # ---------------------------------------------------------------------------
@@ -293,6 +327,36 @@ def test_parse_recursive_skips_hidden_directories(tmp_path: Path) -> None:
     assert result.returncode == 0
     assert (tmp_path / "visible_actions.md").exists()
     assert not (hidden / "notes_actions.md").exists()
+
+
+def test_parse_directory_rerun_skips_generated_outputs(tmp_path: Path) -> None:
+    (tmp_path / "notes.txt").write_text("Alice to send report.\n", encoding="utf-8")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    first = _run_console_script(["parse", str(tmp_path)], env)
+    second = _run_console_script(["parse", str(tmp_path)], env)
+
+    assert first.returncode == 0
+    assert second.returncode == 0
+    assert (tmp_path / "notes_actions.md").exists()
+    assert not (tmp_path / "notes_actions_actions.md").exists()
+
+
+def test_parse_recursive_rerun_skips_nested_generated_outputs(tmp_path: Path) -> None:
+    sub = tmp_path / "sub"
+    sub.mkdir()
+    (sub / "notes.txt").write_text("Bob will review the deck.\n", encoding="utf-8")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+
+    first = _run_console_script(["parse", str(tmp_path), "--recursive"], env)
+    second = _run_console_script(["parse", str(tmp_path), "--recursive"], env)
+
+    assert first.returncode == 0
+    assert second.returncode == 0
+    assert (sub / "notes_actions.md").exists()
+    assert not (sub / "notes_actions_actions.md").exists()
 
 
 # ---------------------------------------------------------------------------

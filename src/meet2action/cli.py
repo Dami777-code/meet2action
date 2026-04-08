@@ -14,6 +14,7 @@ app = typer.Typer(
 )
 
 _NOTES_EXTENSIONS: frozenset[str] = frozenset({".md", ".txt"})
+_GENERATED_OUTPUT_SUFFIXES: frozenset[str] = frozenset({"_actions.md", "_actions.json"})
 
 
 def _version_callback(value: bool) -> None:
@@ -94,10 +95,15 @@ def _collect_notes_files(input_dir: Path, recursive: bool) -> list[Path]:
             for f in input_dir.rglob("*")
             if f.is_file()
             and f.suffix.lower() in _NOTES_EXTENSIONS
+            and not any(f.name.lower().endswith(suffix) for suffix in _GENERATED_OUTPUT_SUFFIXES)
             and not any(part.startswith(".") for part in f.relative_to(input_dir).parts)
         )
     return sorted(
-        f for f in input_dir.iterdir() if f.is_file() and f.suffix.lower() in _NOTES_EXTENSIONS
+        f
+        for f in input_dir.iterdir()
+        if f.is_file()
+        and f.suffix.lower() in _NOTES_EXTENSIONS
+        and not any(f.name.lower().endswith(suffix) for suffix in _GENERATED_OUTPUT_SUFFIXES)
     )
 
 
@@ -199,7 +205,7 @@ def parse(
 
     run_parse(
         input_file,
-        out if out is not None else Path("actions.md"),
+        out if out is not None else _derive_output_path(input_file, fmt),
         fmt,
         dry_run=dry_run,
     )

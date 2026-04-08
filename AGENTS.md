@@ -13,10 +13,10 @@ V1 complete. Parser, formatter, CLI, and tests are all production-ready.
 ## V1 Boundaries (must respect)
 
 - Single CLI command: `parse`
-- Input is a single local `.md` or `.txt` file
+- Input is a single local `.md` or `.txt` file, or a directory of notes files
 - Extract actions from bullets and sentences
 - Extract owner and due date only when obvious
-- Produce one standardized markdown output file
+- Produce one standardized markdown or JSON output file
 - Print a concise terminal summary
 - Include unit tests for parser and formatter
 
