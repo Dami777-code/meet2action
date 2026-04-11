@@ -226,6 +226,24 @@ Q3 Update: budget looks healthy.
     assert result.actions == []
 
 
+def test_parse_actions_we_will_draft_and_update_are_kept() -> None:
+    # "draft" and "update" were missing from the we-will allowlist, causing
+    # false negatives for these common meeting-note patterns.
+    text = """
+We will draft the proposal by Friday.
+We will update the timeline.
+"""
+    result = parse_actions(text)
+
+    assert len(result.actions) == 2
+    assert result.actions[0].owner is None
+    assert result.actions[0].task == "Draft the proposal"
+    assert result.actions[0].due_date == "Friday"
+    assert result.actions[1].owner is None
+    assert result.actions[1].task == "Update the timeline"
+    assert result.actions[1].due_date is None
+
+
 def test_parse_actions_at_prefix_without_task_hint_extracts_no_owner() -> None:
     # @Name whose remainder lacks a recognised task-hint verb: owner is not
     # extracted and the full raw line becomes the task text.

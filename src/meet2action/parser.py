@@ -115,8 +115,10 @@ def _is_candidate_action(line: str) -> bool:
         token in lowered
         for token in (
             "send ",
+            "draft ",
             "review ",
             "prepare ",
+            "update ",
             "finalize ",
             "schedule ",
             "follow up",
