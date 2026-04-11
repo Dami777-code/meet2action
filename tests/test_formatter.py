@@ -7,13 +7,13 @@ from meet2action.models import ActionItem, ParseResult
 def test_format_actions_markdown_with_metadata() -> None:
     rendered = format_actions_markdown(
         [
-            ActionItem(task="Draft kickoff agenda", owner="Alice", due_date="2026-03-20"),
+            ActionItem(task="Draft kickoff agenda", owner="Alice", due_date="2099-01-15"),
             ActionItem(task="Follow up with legal", owner="Bob"),
         ]
     )
 
     assert "# Action Items" in rendered
-    assert "- [ ] Draft kickoff agenda (owner: Alice, due: 2026-03-20)" in rendered
+    assert "- [ ] Draft kickoff agenda (owner: Alice, due: 2099-01-15)" in rendered
     assert "- [ ] Follow up with legal (owner: Bob)" in rendered
 
 
@@ -25,7 +25,7 @@ def test_format_actions_markdown_no_actions() -> None:
 def test_format_actions_json_shape() -> None:
     result = ParseResult(
         actions=[
-            ActionItem(task="Draft kickoff agenda", owner="Alice", due_date="2026-03-20"),
+            ActionItem(task="Draft kickoff agenda", owner="Alice", due_date="2099-01-15"),
             ActionItem(task="Follow up with legal", owner="Bob"),
         ],
         total_lines=5,
@@ -40,7 +40,7 @@ def test_format_actions_json_shape() -> None:
     assert data["actions"][0] == {
         "task": "Draft kickoff agenda",
         "owner": "Alice",
-        "due_date": "2026-03-20",
+        "due_date": "2099-01-15",
     }
     assert data["actions"][1] == {"task": "Follow up with legal", "owner": "Bob", "due_date": None}
 
