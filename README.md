@@ -106,7 +106,7 @@ meet2action parse tests/fixtures/notes_sample.txt --format json --out actions.js
 ## Example Input
 
 ```text
-- Alice to draft kickoff agenda by 2026-03-20.
+- Alice to draft kickoff agenda by 2099-01-15.
 Please send vendor shortlist by Friday.
 Bob will follow up with legal.
 General discussion about roadmap.
@@ -117,7 +117,7 @@ General discussion about roadmap.
 ```markdown
 # Action Items
 
-- [ ] Draft kickoff agenda (owner: Alice, due: 2026-03-20)
+- [ ] Draft kickoff agenda (owner: Alice, due: 2099-01-15)
 - [ ] Send vendor shortlist (due: Friday)
 - [ ] Follow up with legal (owner: Bob)
 ```
@@ -129,7 +129,7 @@ With `--format json`:
   "total_lines": 4,
   "candidate_lines": 3,
   "actions": [
-    { "task": "Draft kickoff agenda", "owner": "Alice", "due_date": "2026-03-20" },
+    { "task": "Draft kickoff agenda", "owner": "Alice", "due_date": "2099-01-15" },
     { "task": "Send vendor shortlist", "owner": null, "due_date": "Friday" },
     { "task": "Follow up with legal", "owner": "Bob", "due_date": null }
   ]

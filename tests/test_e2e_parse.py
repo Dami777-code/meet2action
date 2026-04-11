@@ -43,7 +43,7 @@ def test_parse_command_end_to_end_with_fixture(tmp_path: Path) -> None:
     assert out_file.exists()
 
     content = out_file.read_text(encoding="utf-8")
-    assert "- [ ] Draft kickoff agenda (owner: Alice, due: 2026-03-20)" in content
+    assert "- [ ] Draft kickoff agenda (owner: Alice, due: 2099-01-15)" in content
     assert "- [ ] Send vendor shortlist (due: Friday)" in content
     assert "- [ ] Follow up with legal (owner: Bob)" in content
 
@@ -82,7 +82,7 @@ def test_console_script_callable_returns_error_for_missing_input(tmp_path: Path)
 
 def test_console_script_callable_returns_error_for_invalid_extension(tmp_path: Path) -> None:
     invalid_input = tmp_path / "notes.csv"
-    invalid_input.write_text("Alice to draft kickoff agenda by 2026-03-20.\n", encoding="utf-8")
+    invalid_input.write_text("Alice to draft kickoff agenda by 2099-01-15.\n", encoding="utf-8")
     out_file = tmp_path / "actions.md"
     env = os.environ.copy()
     env["PYTHONPATH"] = "src"
@@ -145,7 +145,7 @@ def test_console_script_callable_writes_empty_checklist_when_no_actions_found(
 
 def test_parse_directory_produces_per_file_output(tmp_path: Path) -> None:
     (tmp_path / "meeting1.txt").write_text(
-        "Alice to draft kickoff agenda by 2026-03-20.\n", encoding="utf-8"
+        "Alice to draft kickoff agenda by 2099-01-15.\n", encoding="utf-8"
     )
     (tmp_path / "meeting2.md").write_text("Bob will follow up with legal.\n", encoding="utf-8")
     env = os.environ.copy()
@@ -452,7 +452,7 @@ def test_parse_directory_stem_collision_errors_before_any_write(tmp_path: Path) 
 
 def test_parse_dry_run_single_file_writes_nothing(tmp_path: Path) -> None:
     notes = tmp_path / "notes.txt"
-    notes.write_text("Alice to draft kickoff agenda by 2026-03-20.\n", encoding="utf-8")
+    notes.write_text("Alice to draft kickoff agenda by 2099-01-15.\n", encoding="utf-8")
     out_file = tmp_path / "actions.md"
     env = os.environ.copy()
     env["PYTHONPATH"] = "src"
@@ -481,7 +481,7 @@ def test_parse_dry_run_directory_writes_nothing(tmp_path: Path) -> None:
 
 def test_parse_dry_run_json_format_writes_nothing(tmp_path: Path) -> None:
     notes = tmp_path / "notes.txt"
-    notes.write_text("Alice to draft kickoff agenda by 2026-03-20.\n", encoding="utf-8")
+    notes.write_text("Alice to draft kickoff agenda by 2099-01-15.\n", encoding="utf-8")
     out_file = tmp_path / "actions.json"
     env = os.environ.copy()
     env["PYTHONPATH"] = "src"

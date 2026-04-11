@@ -1,5 +1,7 @@
 """Unit tests for the three private CLI helper functions in cli.py."""
 
+import importlib.metadata
+
 import pytest
 import typer
 
@@ -176,7 +178,7 @@ def test_version_flag_exits_zero_and_prints_version() -> None:
         env=env,
     )
     assert result.returncode == 0
-    assert result.stdout.strip() == "meet2action 1.0.0"
+    assert result.stdout.strip() == f"meet2action {importlib.metadata.version('meet2action')}"
 
 
 def test_version_short_flag_exits_zero_and_prints_version() -> None:
@@ -196,4 +198,4 @@ def test_version_short_flag_exits_zero_and_prints_version() -> None:
         env=env,
     )
     assert result.returncode == 0
-    assert result.stdout.strip() == "meet2action 1.0.0"
+    assert result.stdout.strip() == f"meet2action {importlib.metadata.version('meet2action')}"

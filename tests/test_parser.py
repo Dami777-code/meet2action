@@ -3,7 +3,7 @@ from meet2action.parser import parse_actions
 
 def test_parse_actions_extracts_owner_and_due_when_obvious() -> None:
     text = """
-- Alice to draft kickoff agenda by 2026-03-20.
+- Alice to draft kickoff agenda by 2099-01-15.
 Bob will follow up with legal.
 Please send vendor shortlist by Friday.
 Discussion: budget risks.
@@ -16,7 +16,7 @@ Discussion: budget risks.
 
     assert result.actions[0].task == "Draft kickoff agenda"
     assert result.actions[0].owner == "Alice"
-    assert result.actions[0].due_date == "2026-03-20"
+    assert result.actions[0].due_date == "2099-01-15"
 
     assert result.actions[1].task == "Follow up with legal"
     assert result.actions[1].owner == "Bob"
@@ -56,16 +56,16 @@ Status: project is on track.
 
 def test_parse_actions_due_date_guardrails_keep_invalid_dates_out() -> None:
     text = """
-Alice to finalize report by 2026-3-7.
-Alice to finalize report by 2026-02-30.
-Alice to finalize report by 2026-03-07.
+Alice to finalize report by 2099-3-7.
+Alice to finalize report by 2099-02-30.
+Alice to finalize report by 2099-03-07.
 """
     result = parse_actions(text)
 
     assert len(result.actions) == 3
     assert result.actions[0].due_date is None
     assert result.actions[1].due_date is None
-    assert result.actions[2].due_date == "2026-03-07"
+    assert result.actions[2].due_date == "2099-03-07"
 
 
 def test_parse_actions_due_date_guardrails_accept_real_leap_day_only() -> None:
@@ -192,14 +192,14 @@ She to send the summary.
 
 def test_parse_actions_multi_owner_with_due_date() -> None:
     text = """
-Alice and Bob to finalize the report by 2026-04-15.
+Alice and Bob to finalize the report by 2099-04-15.
 """
     result = parse_actions(text)
 
     assert len(result.actions) == 1
     assert result.actions[0].owner == "Alice, Bob"
     assert result.actions[0].task == "Finalize the report"
-    assert result.actions[0].due_date == "2026-04-15"
+    assert result.actions[0].due_date == "2099-04-15"
 
 
 def test_parse_actions_non_proper_name_colon_label_with_action_remainder_is_kept() -> None:
