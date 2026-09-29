@@ -1,75 +1,76 @@
-# Meeting-to-Action (Project C)
+# Meet2Action
 
 ![CI](https://github.com/Dami777-code/meet2action/actions/workflows/ci.yml/badge.svg)
 ![PyPI](https://img.shields.io/pypi/v/meet2action)
 ![Python](https://img.shields.io/pypi/pyversions/meet2action)
 
-Meeting-to-Action is a small CLI tool that converts raw meeting notes (`.md` or `.txt`) into a clean, actionable checklist containing tasks, optional owners, and optional due dates.
+**Turn messy meeting notes into a clean, actionable checklist.**
 
-## V1 Scope
+Meet2Action is a small Python CLI that parses `.md` and `.txt` meeting notes, identifies clear action items, and exports them as Markdown or JSON. It favors deterministic, inspectable rules over opaque extraction so the output is predictable and easy to validate.
 
-- One CLI command: `parse`
-- Input: one `.md`/`.txt` file, or a directory of notes files
-- Extraction of action items from bullets and sentences
-- Optional extraction of owner and due date only when obvious
-- Output: one markdown file with a standardized checklist format
-- Basic terminal summary
-- Unit tests for parser and formatter
+## Why I built it
 
-## Out of Scope (V1)
+Meeting notes often contain a mix of decisions, discussion, context, and actual commitments. The useful next step is usually simple: identify what needs to happen, who owns it when obvious, and when it is due when explicitly stated.
 
-- Web UI
-- Database
-- Authentication/authorization
-- Third-party integrations
-- Audio transcription
-- OCR/PDF parsing
-- Multilingual support
-- Advanced NLP confidence scoring
-- Background jobs
-- Cloud deployment
+Meet2Action is intentionally narrow. It focuses on doing that one job reliably rather than becoming a full meeting-management platform.
 
-## Requirements
+## Example
 
-- Python 3.11+
+**Input**
 
-## Installation
+```text
+- Alice to draft kickoff agenda by 2099-01-15.
+Please send vendor shortlist by Friday.
+Bob will follow up with legal.
+General discussion about roadmap.
+```
+
+**Output**
+
+```markdown
+# Action Items
+
+- [ ] Draft kickoff agenda (owner: Alice, due: 2099-01-15)
+- [ ] Send vendor shortlist (due: Friday)
+- [ ] Follow up with legal (owner: Bob)
+```
+
+JSON output is also available for downstream workflows and automation.
+
+## What it demonstrates
+
+- Python 3.11+ package and CLI design
+- Typer-based command-line UX
+- Deterministic parsing and validation
+- Markdown and JSON output formats
+- Batch and recursive directory processing
+- Automated tests with pytest
+- Linting with Ruff
+- Build/package validation
+- GitHub Actions CI
+- Clear scope boundaries and failure behavior
+
+## Quick start
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -e .
-```
-
-For the full local validation pass, install the dev extra:
-
-```bash
 pip install -e ".[dev]"
 ```
 
-## Usage
+Parse a single notes file:
 
 ```bash
 meet2action parse notes.md --out actions.md
 ```
 
-To produce machine-readable JSON instead of markdown:
+Produce JSON:
 
 ```bash
 meet2action parse notes.md --format json --out actions.json
 ```
 
-Without `--out`, the CLI writes beside the input:
-
-```bash
-meet2action parse notes.md
-# writes notes_actions.md next to notes.md
-
-meet2action parse notes.md --format json
-# writes notes_actions.json next to notes.md
-```
-
-You can also batch-parse a directory of notes files:
+Parse a directory:
 
 ```bash
 meet2action parse ./notes
@@ -77,9 +78,33 @@ meet2action parse ./notes --recursive
 meet2action parse ./notes --format json --out-dir ./parsed
 ```
 
-Single-file input must be a local `.md` or `.txt` file.
+Without `--out`, Meet2Action writes the generated file beside the input. Batch directory scans skip default generated `_actions.md` and `_actions.json` outputs so reruns do not parse them again.
 
-Expected validation failures return a non-zero exit code and do not write an output file:
+## Extraction behavior
+
+The parser is intentionally conservative.
+
+An action candidate needs a clear action cue such as `to`, `will`, `send`, `review`, `prepare`, or `follow up`.
+
+Owners are extracted only from obvious patterns such as:
+
+- `Alice to ...`
+- `Alice will ...`
+- `Alice: ...`
+- `@Alice ...`
+
+Due dates are extracted only from explicit patterns such as:
+
+- `by 2099-01-15`
+- `due 2099-01-15`
+- `by Monday`
+- `due Friday`
+
+Discussion and status context are deliberately ignored when they do not contain a clear action.
+
+## Validation and failure behavior
+
+Expected validation failures return a non-zero exit code and do not write an output file.
 
 ```bash
 meet2action parse /tmp/missing.txt --out actions.md
@@ -91,52 +116,7 @@ meet2action parse notes.csv --out actions.md
 # Error: input file must be .md or .txt
 ```
 
-## Validation
-
-```bash
-.venv/bin/pytest
-.venv/bin/ruff check .
-.venv/bin/python -m build
-meet2action parse tests/fixtures/notes_sample.txt --out actions.md
-meet2action parse tests/fixtures/notes_sample.txt --format json --out actions.json
-```
-
-`python -m build` uses an isolated build environment by default, so the build backend dependencies must be available locally or installable from the current environment.
-
-## Example Input
-
-```text
-- Alice to draft kickoff agenda by 2099-01-15.
-Please send vendor shortlist by Friday.
-Bob will follow up with legal.
-General discussion about roadmap.
-```
-
-## Example Output
-
-```markdown
-# Action Items
-
-- [ ] Draft kickoff agenda (owner: Alice, due: 2099-01-15)
-- [ ] Send vendor shortlist (due: Friday)
-- [ ] Follow up with legal (owner: Bob)
-```
-
-With `--format json`:
-
-```json
-{
-  "total_lines": 4,
-  "candidate_lines": 3,
-  "actions": [
-    { "task": "Draft kickoff agenda", "owner": "Alice", "due_date": "2099-01-15" },
-    { "task": "Send vendor shortlist", "owner": null, "due_date": "Friday" },
-    { "task": "Follow up with legal", "owner": "Bob", "due_date": null }
-  ]
-}
-```
-
-If no actionable lines are found, the CLI still writes a valid checklist file:
+If no actionable lines are found, the tool still writes a valid result:
 
 ```markdown
 # Action Items
@@ -144,25 +124,20 @@ If no actionable lines are found, the CLI still writes a valid checklist file:
 _No action items found._
 ```
 
+## Development
 
-## Extraction rules (V1)
+Run the full local validation pass:
 
-The parser uses deterministic, conservative rules:
+```bash
+pytest
+ruff check .
+python -m pip install build
+python -m build
+```
 
-- Action candidates are lines with clear action cues (for example: `to`, `will`, `send`, `review`, `prepare`, `follow up`).
-- Owner is extracted only for obvious formats:
-  - `Alice to ...`
-  - `Alice will ...`
-  - `Alice: ...`
-  - `@Alice ...`
-- Due date is extracted only for obvious formats:
-  - `by YYYY-MM-DD` or `due YYYY-MM-DD` (must be a real calendar date)
-  - `by Monday` or `due Friday` (weekday names)
-- Discussion/status context lines (for example `Discussion:` or `We will discuss ...`) are intentionally ignored to reduce false positives.
-- Generic context labels like `Topic:`, `FYI:`, and `Background:` are ignored unless they clearly match an obvious action-owner pattern.
-- Leading `Please` is removed from task text when present as politeness.
+`python -m build` creates an isolated build environment by default, so the build backend dependencies must be available locally or installable from the current environment.
 
-## Project Layout
+## Project structure
 
 ```text
 meet2action/
@@ -172,9 +147,16 @@ meet2action/
 │   ├── models.py
 │   └── parser.py
 └── tests/
-    ├── fixtures/notes_sample.txt
+    ├── fixtures/
     ├── test_cli_helpers.py
     ├── test_e2e_parse.py
     ├── test_formatter.py
     └── test_parser.py
 ```
+
+## Scope
+
+Meet2Action is deliberately a focused CLI. It does **not** currently include a web UI, accounts, a database, third-party integrations, audio transcription, OCR/PDF parsing, background jobs, or cloud deployment.
+
+That constraint keeps the project small, testable, and easy to understand.
+
