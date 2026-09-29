@@ -78,7 +78,7 @@ meet2action parse ./notes --recursive
 meet2action parse ./notes --format json --out-dir ./parsed
 ```
 
-Without `--out`, Meet2Action writes the generated file beside the input.
+Without `--out`, Meet2Action writes the generated file beside the input. Batch directory scans skip default generated `_actions.md` and `_actions.json` outputs so reruns do not parse them again.
 
 ## Extraction behavior
 
@@ -131,8 +131,11 @@ Run the full local validation pass:
 ```bash
 pytest
 ruff check .
+python -m pip install build
 python -m build
 ```
+
+`python -m build` creates an isolated build environment by default, so the build backend dependencies must be available locally or installable from the current environment.
 
 ## Project structure
 
@@ -156,3 +159,4 @@ meet2action/
 Meet2Action is deliberately a focused CLI. It does **not** currently include a web UI, accounts, a database, third-party integrations, audio transcription, OCR/PDF parsing, background jobs, or cloud deployment.
 
 That constraint keeps the project small, testable, and easy to understand.
+
