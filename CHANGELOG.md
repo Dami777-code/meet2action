@@ -39,5 +39,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MIT License.
 
 [Unreleased]: https://github.com/Dami777-code/meet2action/compare/v1.0.1...HEAD
-[1.0.1]: https://github.com/Dami777-code/meet2action/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/Dami777-code/meet2action/releases/tag/v1.0.0
+[1.0.1]: https://github.com/Dami777-code/meet2action/tree/v1.0.1
+[1.0.0]: https://pypi.org/project/meet2action/1.0.0/

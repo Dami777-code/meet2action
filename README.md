@@ -1,8 +1,8 @@
 # Meet2Action
 
-![CI](https://github.com/Dami777-code/meet2action/actions/workflows/ci.yml/badge.svg)
-![PyPI](https://img.shields.io/pypi/v/meet2action)
-![Python](https://img.shields.io/pypi/pyversions/meet2action)
+[![CI](https://github.com/Dami777-code/meet2action/actions/workflows/ci.yml/badge.svg)](https://github.com/Dami777-code/meet2action/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/meet2action)](https://pypi.org/project/meet2action/)
+[![Python](https://img.shields.io/pypi/pyversions/meet2action)](pyproject.toml)
 
 **Turn messy meeting notes into a clean, actionable checklist.**
 
@@ -52,7 +52,11 @@ JSON output is also available for downstream workflows and automation.
 
 ## Quick start
 
+Install the current source checkout (version 1.0.1). The PyPI badge refers to the separately published 1.0.0 release.
+
 ```bash
+git clone https://github.com/Dami777-code/meet2action.git
+cd meet2action
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
@@ -155,6 +159,8 @@ meet2action/
 ```
 
 ## Scope
+
+Licensed under [MIT](LICENSE).
 
 Meet2Action is deliberately a focused CLI. It does **not** currently include a web UI, accounts, a database, third-party integrations, audio transcription, OCR/PDF parsing, background jobs, or cloud deployment.
 
